@@ -1,0 +1,8 @@
+site_name: Variance Component Test for Microbiome Data
+pages:
+- Home: index.md
+- Installation: Installation.md
+- Dataformats: Dataformats.md
+- Usage: Usage.md
+- Examples: Examples.md
+theme: readthedocs

@@ -1,6 +1,6 @@
 # VC Test for Longitudinal Microbiome Study
 
-**VCTestMicrobiome.jl** is a Julia package for performing exact variance component tests in longitudinal microbiome study. It utilizes three types of exact tests from Julia package **VarianceComponentTest.jl**
+**VCTestMicrobiome.jl** is a Julia package for performing exact variance component tests in longitudinal microbiome study. It utilizes three types of exact tests from Julia package [**VarianceComponentTest.jl**]("https://github.com/Tao-Hu/VarianceComponentTest.jl/blob/master/README.md")(By Hu-Tao)
 
 * exact likelihood ratio test (eLRT)
 * exact restricted likelihood ratio test (eRLRT)

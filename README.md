@@ -18,5 +18,5 @@ To install _VCTestMicrobiome.jl_, open up Julia and then type
 
 ```julia
 julia> Pkg.update()
-julia> Pkg.clone()
+julia> Pkg.clone("git://src/MicrobiomeVCTest.jl")
 ```

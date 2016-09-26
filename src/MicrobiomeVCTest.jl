@@ -8,10 +8,7 @@ function MicrobiomeVCTest(args...; bInit::Array{Float64, 1} = Float64[],
                 device::String = "CPU",
                 yInit::Int = 5,
 
-#                method::String="simulation",
-                simN::Int=100, # number of simulation times
                 obsN::Int=100,  # number of observations
-                sigmaM::Float64=0.0,
                 DataType::String = "",
 
                 ZtZ::String = "intercept", 
@@ -20,7 +17,7 @@ function MicrobiomeVCTest(args...; bInit::Array{Float64, 1} = Float64[],
                 nNullSimPts::Int = 10000, # simulation samples
                 nNullSimNewtonIter::Int = 15, #Max Newton iteration
                 test::String = "eLRT",
-                outFile::String = "sigmaM",
+                outFile::String = "",
                 tolX::Float64 = 1e-4,
                 vcInit::Array{Float64, 1} = Float64[],
                 Vform::String = "whole",
@@ -829,9 +826,9 @@ end
    pValue, vc0Sim, vc1Sim,PvalueCount
 
   if isempty(outFile)
-    outFile = string(kernelFile,test,sigmaM,".out");
+    outFile = string(responseFile,test,".out");
   else
-    outFile = string(responseFile,test,sigmaM,".out")
+    outFile = string(outfile,".out")
   end
   fid = open(outFile, "w");
   println(fid, "pvalue,vc0,vc1,PvalueCount");

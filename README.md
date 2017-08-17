@@ -14,7 +14,7 @@ Please see the detailed documents in [Read the Docs](http://127.0.0.1:8000)
 
 # Installation
 
-To install _VCTestMicrobiome.jl_, open up Julia and then type
+To install _VCTeicrobiome.jl_, open up Julia and then type
 
 ```julia
 julia> Pkg.clone("git://src/VCmicrobiome.jl")

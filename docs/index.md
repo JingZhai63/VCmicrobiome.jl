@@ -22,8 +22,8 @@ To use **VCTestMicrobiome.jl** , you need to call the `MicrobiomeVCTest()` funct
 
 ## Contents
 
-* [Installation](http://127.0.0.1:8000/Installation/)
-* [Dataformats](http://127.0.0.1:8000/Dataformats/)
-* [Usage](http://127.0.0.1:8000/Usage/)
-* [Examples](http://127.0.0.1:8000/Examples/)
+* [Installation](hhttp://vcmicrobiomejl.readthedocs.io/en/latest/Installation/)
+* [Dataformats](http://vcmicrobiomejl.readthedocs.io/en/latest/Dataformats/)
+* [Usage](http://vcmicrobiomejl.readthedocs.io/en/latest/Usage/)
+* [Examples](http://vcmicrobiomejl.readthedocs.io/en/latest/Examples/)
 

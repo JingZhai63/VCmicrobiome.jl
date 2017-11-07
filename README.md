@@ -10,7 +10,7 @@ The input files for _VCmicrobiome.jl_ are microbiome `kernel distance matrix (.c
 
 To use **VCmicrobiome.jl** , you need to call the `MicrobiomeVCTest()` function.
 
-Please see the detailed documents in [Read the Docs](http://127.0.0.1:8000) 
+Please see the detailed documents in [Read the Docs](http://vcmicrobiomejl.readthedocs.io/en/latest/) 
 
 # Installation
 

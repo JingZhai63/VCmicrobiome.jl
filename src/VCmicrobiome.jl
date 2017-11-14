@@ -1,5 +1,13 @@
 module VCmicrobiome
 
-# package code goes here
+export
 
+      MicrobiomeVCTest,
+      KernlInput,
+      MMicrobiomeVCTest
+
+include("MicrobiomeVCTest.jl")
+include("KernlInput.jl")
+include("readNewick.jl")
+include("MMicrobiomeVCTest.jl")
 end # module

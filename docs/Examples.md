@@ -5,7 +5,7 @@ This example illustrates the usages of different options by analyzing a simulate
 * Microbiome tree file: OTUs_tree.txt
 * Microbiome count table: count.csv
 * Kernel matrix file: kernel.csv, kernel_baseline.csv, MultiKerName.csv
-* Covariates file: covariates.csv, covariates_baseline.csv which contains 3 covariates 
+* Covariates file: covariates.csv, covariates_baseline.csv which contains 3 covariates
 * Phenotye file: y.csv, y_baseline.csv
 
 These data files come with our package, and they are available at here.
@@ -43,7 +43,7 @@ $ julia -E 'using VCTestMicrobiome; MicrobiomeVCTest(kernelFile = "kernel.csv", 
 If the study is not longitudinal designed or you want to analyze data for one time point, then
 ```julia
 julia> using VCTestMicrobiome
-julia> MicrobiomeVCTest(kernelFile = "kernel_baseline.csv", covFile = "covariates_baseline.csv", responseFile = "y_baseline.csv", ZtZ = "none", test = "eRLRT",yInit=3)
+julia> MicrobiomeVCTest(kernelFile = "kernel_baseline.csv", covFile = "covariates_baseline.csv", responseFile = "y_baseline.csv", ZtZ = "none", test = "eRLRT", yInit=3)
 ```
 
 # Option `pvalueComputing`
@@ -52,12 +52,7 @@ Chi squared approximation is recommended (though you don't have to write it out 
 julia> using VCTestMicrobiome
 julia> MicrobiomeVCTest(kernelFile = "kernel_baseline.csv", covFile = "covariates_baseline.csv", responseFile = "y_baseline.csv", ZtZ = "none", test = "eRLRT", pvalueComputing = "chi2")
 ```
-If you want to use Monte Carlo method
-```julia
 
-julia> using VCTestMicrobiome
-julia> MicrobiomeVCTest(kernelFile = "kernel_baseline.csv", covFile = "covariates_baseline.csv", responseFile = "y_baseline.csv", ZtZ = "none", test = "eRLRT", pvalueComputing = "MonteCarlo")
-```
 Note: Option pvalueComputing is only for eLRT and eRLRT. For eScore, it employs the method of inverting characteristics function to compute the _p_-value.
 
 # Option `KernelLists` and `kernel`
@@ -66,5 +61,5 @@ OTUs can be grouped to higher phylogenetic rank such as genus, class, family, ph
 Specifically, `KernelLists`  indicates a csv file containing the name of the multiple kernel matrix files and `kernel` indicates there are more than one microbiome cluster to be test.
 ```julia
 julia> using VCTestMicrobiome
-julia> MMicrobiomeVCTest(nObs=150,kernelLists = "MultiKerList.csv", kernel="multi", covFile = "covariates.csv", responseFile = "y.csv", ZtZ = "intercept", test = "eRLRT")
+julia> MMicrobiomeVCTest(nObs=150, KernelLists = "MultiKerName.csv", kernel="multi", covFile = "covariates.csv", responseFile = "y.csv", ZtZ = "intercept", test = "eRLRT")
 ```

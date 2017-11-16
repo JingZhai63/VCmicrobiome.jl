@@ -1,5 +1,8 @@
 module VCmicrobiome
 
+import Distributions, VarianceComponentTest
+using Distributions
+using VarianceComponentTest
 export
 
       MicrobiomeVCTest,
@@ -7,7 +10,7 @@ export
       MMicrobiomeVCTest
 
 include("MicrobiomeVCTest.jl")
-include("KernlInput.jl")
-include("readNewick.jl")
+include("MultiKernelInput.jl")
+# include("readNewick.jl")
 include("MMicrobiomeVCTest.jl")
 end # module

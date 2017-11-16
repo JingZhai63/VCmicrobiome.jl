@@ -1,7 +1,7 @@
 function MicrobiomeVCTest(args...; bInit::Array{Float64, 1} = Float64[],
                 devices::String = "CPU",
-                MemoryLimit::Int = 200000000, 
-                covFile::String = "", 
+                MemoryLimit::Int = 200000000,
+                covFile::String = "",
                 kernelFile::String = "",
                 Kbsl::String="", K1::String="",
                 responseFile::String = "",
@@ -11,7 +11,7 @@ function MicrobiomeVCTest(args...; bInit::Array{Float64, 1} = Float64[],
                 obsN::Int=100,  # number of observations
                 DataType::String = "",
 
-                ZtZ::String = "intercept", 
+                ZtZ::String = "intercept",
                 nMMmax::Int = 0,
                 nBlockAscent::Int = 1000, # max block ascent iterations, default is 100
                 nNullSimPts::Int = 10000, # simulation samples
@@ -20,7 +20,7 @@ function MicrobiomeVCTest(args...; bInit::Array{Float64, 1} = Float64[],
                 outFile::String = "",
                 tolX::Float64 = 1e-4,
                 vcInit::Array{Float64, 1} = Float64[],
-                Vform::String = "whole",
+                Vform::String = "half",
                 pvalueComputing::String = "chi2",
                 WPreSim::Array{Float64, 2} = [Float64[] Float64[]],
                 PrePartialSumW::Array{Float64, 2} = [Float64[] Float64[]],
@@ -57,11 +57,11 @@ function MicrobiomeVCTest(args...; bInit::Array{Float64, 1} = Float64[],
     error("mVctest:kernelwrongn\n",
              "# no kernel matrix")
   else
- 
+
    K = readdlm(kernelFile,',')
    K=K[2:end,:]
    K=convert(Array{Float64, 2}, K)
- 
+
   end
 
   nObs=length(K[:,1]); # number of total observations N #58
@@ -74,7 +74,7 @@ function MicrobiomeVCTest(args...; bInit::Array{Float64, 1} = Float64[],
       error("MicrobiomVctest:noresponse\n", "# need to provide response file");
     else
       YY = readdlm(responseFile,',');
-      YY = YY[2:end,yInit:end]  
+      YY = YY[2:end,yInit:end]
       if size(YY, 1) != nObs
         error("mvctest:ywrongn\n",
               "# individuals in response file does not match dimension of V ");
@@ -93,8 +93,8 @@ function MicrobiomeVCTest(args...; bInit::Array{Float64, 1} = Float64[],
             "# need to provide response file");
     else
       YY = readdlm(responseFile,',');
-      YY = YY[2:end,yInit:end]  
-      
+      YY = YY[2:end,yInit:end]
+
       if size(YY, 1) != nObs
         error("mvctest:ywrongn\n",
               "# individuals in response file does not match dimension of V ");
@@ -102,20 +102,20 @@ function MicrobiomeVCTest(args...; bInit::Array{Float64, 1} = Float64[],
     end
 
     X = convert(Array{Float64, 2}, X); # convert the Array type of X to Float64 with 2 dimentions
-  end 
+  end
    simN=size(YY,2)
 
    pValue = Array(Float64,simN)
    vc0Sim = Array(Float64,simN)
    vc1Sim = Array(Float64,simN)
 
-for iSim = 1:simN 
+for iSim = 1:simN
      y = YY[:,iSim]
-     y = convert(Array{Float64, 1}, y) 
+     y = convert(Array{Float64, 1}, y)
      nPerKeep = length(y);
      if isempty(covFile) # no covariates provided
        X = ones(nObs, 1); # N-by-1 matrix with all elements equal to 1
-     else 
+     else
       X = readdlm(covFile,',');
 
       X = X[2:end,3:end];
@@ -163,28 +163,28 @@ for iSim = 1:simN
     # Xsvd[:U] -- QX
     Xsvd = svdfact(X, thin = false);
     rankX = countnz(Xsvd[:S] .> nPerKeep * eps(Xsvd[:S][1])); # r0=rank(Q0)
-    XtNullBasis = Xsvd[:U][:, rankX + 1 : end]; 
+    XtNullBasis = Xsvd[:U][:, rankX + 1 : end];
     QX = Xsvd[:U][:, 1 : rankX];   #orthonormal basis of Q0 of C(X)
 
    QZsvd = svdfact(BLAS.gemm('T', 'N', XtNullBasis, Z)); # XtNullBasis N(X')
     ZKeepIdx = (1 - QZsvd[:S]) .< 1e-6;
-    rankQZ = countnz(ZKeepIdx)  
-    QZ = Array(Float64, nPerKeep, rankQZ); 
+    rankQZ = countnz(ZKeepIdx)
+    QZ = Array(Float64, nPerKeep, rankQZ);
     BLAS.gemm!('N', 'N', 1.0, Z, QZsvd[:V][:, 1 : rankQZ], 0.0, QZ); #orthonormal basis Q1 of C(Phi)-C(X)
-    XPhitNullBasis = null([QX Z]');  
+    XPhitNullBasis = null([QX Z]');
 
-    tmpMat = Array(Float64, rankQZ, size(Z,2)); 
-    BLAS.gemm!('T', 'N', 1.0, QZ, Z, 0.0, tmpMat); 
+    tmpMat = Array(Float64, rankQZ, size(Z,2));
+    BLAS.gemm!('T', 'N', 1.0, QZ, Z, 0.0, tmpMat);
     PhiAdjsvd = svdfact(tmpMat, thin = false); #PhiAdjsvd ---WLambdaW'
-   
+
     #W = PhiAdjsvd[:U];
     evalPhiAdj = PhiAdjsvd[:S] .^ 2;
     # enforce first entry of each eigenvector to be >=0
     idxW = vec(PhiAdjsvd[:U][1, :]) .< 0;
     PhiAdjsvd[:U][:, idxW] = - PhiAdjsvd[:U][:, idxW];
 
-    KPhiAdj = PhiAdjsvd[:U][:, :]; 
-    scale!(KPhiAdj, sqrt(evalPhiAdj / minimum(evalPhiAdj) - 1));  
+    KPhiAdj = PhiAdjsvd[:U][:, :];
+    scale!(KPhiAdj, sqrt(evalPhiAdj / minimum(evalPhiAdj) - 1));
     InvSqrtevalPhiAdj = similar(evalPhiAdj);
     for i = 1 : length(evalPhiAdj)
       InvSqrtevalPhiAdj[i] = 1 / sqrt(evalPhiAdj[i]);
@@ -204,7 +204,7 @@ for iSim = 1:simN
      QRes = Array(Float64, nPerKeep, rankQZ); # Q2
 
      tmpvec = similar(yShift);
-     tmpvecQRes = Array(Float64, rankQZ); 
+     tmpvecQRes = Array(Float64, rankQZ);
      yWork = similar(evalPhiAdj);
      partialSumWConst = Array(Float64, nNullSimPts);
      totalSumWConst = Array(Float64, nNullSimPts);
@@ -212,16 +212,16 @@ for iSim = 1:simN
      pSubXPhitSV = pointer(subXPhitSV);
      offset = 0;
 
-     tmpMat = Array(Float64, nPerKeep, size(XPhitNullBasis, 2)); 
-     
-     VWorkSqrt = Array(Float64, length(evalPhiAdj), nPerKeep); 
+     tmpMat = Array(Float64, nPerKeep, size(XPhitNullBasis, 2));
+
+     VWorkSqrt = Array(Float64, length(evalPhiAdj), nPerKeep);
      VWorkSqrt2 = Array(Float64, length(evalPhiAdj), nPerKeep);
 
 
-     BLAS.gemm!('T', 'N', 1.0, K, XPhitNullBasis, 0.0, tmpMat); 
+     BLAS.gemm!('T', 'N', 1.0, K, XPhitNullBasis, 0.0, tmpMat);
      (UXPhitS, svalXPhitS, VXPhitS) = svd(tmpMat, thin = false);
-    
-     rankXPhitS = countnz(svalXPhitS .> size(XPhitNullBasis, 2) * eps(svalXPhitS[1]));  
+
+     rankXPhitS = countnz(svalXPhitS .> size(XPhitNullBasis, 2) * eps(svalXPhitS[1]));
      pXPhitSV = pointer(VXPhitS)
      BLAS.blascopy!(size(XPhitNullBasis, 2) * rankQZ, pXPhitSV, 1, pSubXPhitSV, 1);
      BLAS.gemm!('N', 'N', 1.0, XPhitNullBasis, subXPhitSV, 0.0, QRes); # QRes---Q2
@@ -229,7 +229,7 @@ for iSim = 1:simN
      BLAS.blascopy!(length(yShift), yShift, 1, tmpvec, 1); # tmpvec---Q1'*y
      BLAS.gemv!('T', 1.0, QRes, y, 0.0, tmpvecQRes);  # tmpvecQRes---Q2'*y
      BLAS.gemv!('N', 1.0, KPhiAdj, tmpvecQRes, 1.0, tmpvec); #tmpvec---Q1'*y+K*Q2'*Y
-     BLAS.gemv!('T', 1.0, weightedW, tmpvec, 0.0, yWork); 
+     BLAS.gemv!('T', 1.0, weightedW, tmpvec, 0.0, yWork);
 
      BLAS.gemm!('T', 'N', 1.0, QZ, K, 0.0, VWorkSqrt2);  #VWorkSqrt2=Q1'*Kernel
      BLAS.gemm!('T', 'N', 1.0, weightedW, VWorkSqrt2, 0.0, VWorkSqrt);
@@ -285,7 +285,7 @@ for iSim = 1:simN
     evalVfull = evalVfull .^ 2;
     evalV = evalVfull[1:rankV];
     UV = UVfull[:, 1:rankV];
- 
+
   elseif Vform == "eigen"
     UV = V.U;
     evalV = V.eval;
@@ -324,11 +324,11 @@ for iSim = 1:simN
       evalAdjV = evalAdjV[evalAdjV .> n * eps(maximum(evalAdjV))] .^ 2;
     end
   end
-  rankAdjV = length(evalAdjV); 
+  rankAdjV = length(evalAdjV);
 
-  ## pre-processing for testing 
+  ## pre-processing for testing
 
-#simulate (n-s) normal distribution and squre it to get w_i^2 
+#simulate (n-s) normal distribution and squre it to get w_i^2
 
   srand(1)
   nSimPts = nNullSimPts;
@@ -357,7 +357,7 @@ for iSim = 1:simN
    nPreRank=n-rankX  #zj::
   end
  # nPreRank= rankAdjV
- 
+
   PrePartialSumW = Array(Float64, nNullSimPts, nPreRank+1);
   PreTotalSumW = Array(Float64, nNullSimPts, nPreRank+1);
   tmpSumVec = Array(Float64, nNullSimPts);
@@ -377,8 +377,8 @@ for iSim = 1:simN
       PreTotalSumW[i, j+1] = tmpSumVec[i] + PrePartialSumW[i, j+1];
     end
   end
-  
-  
+
+
 #  ppw = pointer(partialSumWConst);
 #  ptw = pointer(totalSumWConst);
 #  pppw = pointer(PrePartialSumW) +
@@ -387,7 +387,7 @@ for iSim = 1:simN
 #    rankAdjV * nSimPts * sizeof(Float64);
 #  BLAS.blascopy!(nSimPts, pppw, 1, ppw, 1);
 #  BLAS.blascopy!(nSimPts, pptw, 1, ptw, 1);
-  
+
   if test == "eLRT" || test == "eRLRT"
 
       # set effective sample size
@@ -513,7 +513,7 @@ end
       b = copy(bInit);
       r = y - X * b;
     end
-    if isempty(vcInit)  
+    if isempty(vcInit)
       vc0 = norm(r) ^ 2 / n;
       vc1 = 1;
       wt = 1.0 ./ sqrt(vc1 * evalVfull + vc0);
@@ -601,7 +601,7 @@ end
 
     # LRT test statistic
     statLRT = 2 * (logLikeAlt - logLikeNull);
-    
+
     device="CPU"
     # obtain p-value for testing vc1=0
     pValue[iSim] = vctestnullsim(statLRT, evalV, evalAdjV, n, rankX,
@@ -637,10 +637,10 @@ end
       evalBVB = evalV;
       UBVB = UV;
     else
-      # obtain a basis of N(X') 
+      # obtain a basis of N(X')
       # B=R^n by (n-s), s is rankX
       B = UX[:, rankX+1:end];
-      ytilde = B' * y; # ytilde is nultivariate normal with mean 0_(n-s) and covariance v0^2I_(n-s)+v1^2*B'V1B 
+      ytilde = B' * y; # ytilde is nultivariate normal with mean 0_(n-s) and covariance v0^2I_(n-s)+v1^2*B'V1B
 
       # eigen-decomposition of B'VB and transform data
       (UBVB, evalBVB) = svd(B' * sqrtV);
@@ -839,9 +839,9 @@ end
     for ii = 1 : simN
        # fid = open(outFile, "w");
         println(fid, pValue[ii], ",", vc0Sim[ii], ",",vc1Sim[ii],",",PvalueCount);
-        
+
     end
-    
+
     close(fid);
 
 end

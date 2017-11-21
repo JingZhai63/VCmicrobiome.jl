@@ -1,16 +1,22 @@
+__precompile__()
+
 module VCmicrobiome
 
-import Distributions, VarianceComponentTest
+
+using ConjugatePriors
+using Rmath
+using StatsBase
 using Distributions
-using VarianceComponentTest
+
 export
 
-      MicrobiomeVCTest,
-      KernlInput,
-      MMicrobiomeVCTest
+      vctest,
+      vctestnullsim,
+      microvctest
 
-include("MicrobiomeVCTest.jl")
-include("MultiKernelInput.jl")
-# include("readNewick.jl")
-include("MMicrobiomeVCTest.jl")
+include("vctest.jl")
+include("vctestnullsim.jl")
+include("microvctest.jl")
+# include("MultiKernelInput.jl")
+# include("MMicrobiomeVCTest.jl")
 end # module

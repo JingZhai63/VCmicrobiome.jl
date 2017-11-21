@@ -1,22 +1,25 @@
 # Installation
 
-To install _VCTestMicrobiome.jl_, open up Julia and then type
+To install _VCmicrobiome.jl_, open up Julia and then type
 
 ```julia
 julia> Pkg.clone("https://github.com/JingZhai63/VCmicrobiome.jl.git")
 ```
-If the Julia package _VarianceComponentTest_ is not installed, please install first
+If the Julia packages _StatsBase_, _Rmath_ and _ConjugatePriors_ are not installed, please install them first
 
 ```julia
-julia> Pkg.add("VarianceComponentTest")
+julia> Pkg.add("StatsBase")
+julia> Pkg.add("Rmath")
+julia> Pkg.build("Rmath")
+import Rmath: libRmath
+libRmath
+julia> Pkg.add("ConjugatePriors")
 ```
 
-Then you can use the following command to verify that the package has been installed successfully
+Then you can use the following command to verify that the  _VCmicrobiome.jl_ package has been installed successfully
 
 ```julia
-julia> using VCTestMicrobiome
-julia> MicrobiomeVCTest()
-MicrobiomeVCTest (generic function with 1 method)
+julia> using VCmicrobiome
+julia> microvctest()
+microvctest (generic function with 1 method)
 ```
-
-Also, to install Tao-Hu's Julia package _VarianceComponentTest.jl_, please see [installation](http://variancecomponenttestjl.readthedocs.io/en/latest/installation/)

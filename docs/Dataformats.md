@@ -12,14 +12,8 @@ The type of files involved in this package can be divided into two categories: i
 
 # Kernel Distance Matrix file
 
-UniFrac is a distance metric used for comparing biological communities. More information about the UniFrac distance is [here](https://en.wikipedia.org/wiki/UniFrac). UniFrac distance can be calculated using julia package [_PhylogeneticDistance.jl_](https://github.com/JingZhai63/PhylogeneticDistance.jl). Microbiome count file and phylogenetic tree file are needed. The distance matrix need be transformed to positive-definite kernel matrix. 
+UniFrac is a distance metric used for comparing biological communities. More information about the UniFrac distance is [here](https://en.wikipedia.org/wiki/UniFrac). UniFrac distance can be calculated using julia package [_PhylogeneticDistance.jl_](https://github.com/JingZhai63/PhylogeneticDistance.jl). Microbiome count file and phylogenetic tree file are needed. The distance matrix need be transformed to positive-definite kernel matrix.
 
-
-# Multiple Kernel Name List file
-It's a csv file that contains the file names of the multiple kernel distance matrix to be tested.
-```csv
-"x"Akernel.csvBkernel.csvCkernel.csvDkernel.csvEkernel.csv
-```
 
 # Covariates file
 
@@ -48,4 +42,4 @@ Phenotype file is a csv file that contains the values of phenotypes. In phenotyp
 
 # Output file
 
-Output file is a flat file that contains p-values and other information for each phenotypes under certain testing scheme. In output file, each line represents for one phenotype in phenotypes file(the first line is the header).
+Output file is a flat file that contains _p_-values and other information for each phenotypes under certain testing scheme. In output file, each line represents for one phenotype in phenotypes file(the first line is the header).

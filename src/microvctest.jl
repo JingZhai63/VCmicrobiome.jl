@@ -3,15 +3,16 @@ using Rmath
 using StatsBase
 
 function microvctest(arg...; covFile::String = "", responseFile::String = "",
-                     kernelFile::String = "",  outFile::String = "",
-                     zFile::String = "", yIdx::Int64 = 3, IDidx::Int64 = 1,
-                     xIdx::Array{Int64, 1} = vcat(3,4,5), out::Bool = false,
+                     kernelFile::String = "",  kadjFile::String = "",
+                     outFile::String = "", zFile::String = "", yIdx::Int64 = 3,
+                     IDidx::Int64 = 1,  xIdx::Array{Int64, 1} = vcat(3,4,5),
+                     out::Bool = false,
                      longitudinal::Bool = true, fine::Bool = false,
                      test::String = "eRLRT", device::String = "CPU",
                      infLambda::Float64 = 0.0, nMMmax::Int64 = 0,
                      nBlockAscent::Int64 = 1000, nNullSimPts::Int64 = 1000000,
                      nNullSimNewtonIter::Int64 = 15, tolX::Float64 = 1e-4,
-                     MemoryLimit::Int64 = 200000000,
+                     MemoryLimit::Int64 = 200000000, lowRank::Float64 = 0.4,
                      pvalueComputing::String = "chi2")
 
 ##VCmicrobiome::--------------set default maximum MM iteration-----------------#
@@ -35,6 +36,20 @@ else
 end
 
 nObs = length(K[:, 1])
+
+##VCmicrobiome::-----------------------get kernel adj -------------------------#
+if fine & isempty(kadjFile)
+  error("mVctest:kernelwrongn\n", "# no kernel adjustment matrix")
+elseif fine & isempty(kadjFile) == false
+  Kadj = readdlm(kadjFile,',')
+  if typeof(Kadj[1,1]) != Float64
+    Kadj = Kadj[2:end,:]
+    K = convert(Array{Float64, 2}, Kadj)
+  else
+    Kadj = convert(Array{Float64, 2}, Kadj)
+  end
+end
+
 
 #VCmicrobiome::------------------ get covariate and response-------------------#
 if isempty(covFile)
@@ -91,7 +106,7 @@ Xsvd = svdfact(X, thin = false);
 rankX = countnz(Xsvd[:S] .> nObs * eps(Xsvd[:S][1]));
 XtNullBasis = Xsvd[:U][:, rankX + 1 : end];
 
-if longitudinal == false
+if longitudinal == false && fine == false
   ynew = zeros(nObs - rankX);
   BLAS.gemv!('N', 1.0, XtNullBasis', y, 0.0, ynew);
   yShift = Float64[];
@@ -101,7 +116,7 @@ if longitudinal == false
   nPreRank = tmpn - 1
   partialSumWConst = Array{Float64}(nNullSimPts);
   totalSumWConst = Array{Float64}(nNullSimPts);
-elseif longitudinal
+elseif longitudinal && fine == false
   QX = Xsvd[:U][:, 1 : rankX]
   QZsvd = svdfact(BLAS.gemm('T', 'N', XtNullBasis, Z))
 
@@ -160,6 +175,93 @@ elseif longitudinal
   BLAS.gemm!('T', 'N', 1.0, QZ, K, 0.0, VWorkSqrt2)  #VWorkSqrt2=Q1'*Kernel
   BLAS.gemm!('T', 'N', 1.0, weightedW, VWorkSqrt2, 0.0, VWorkSqrt)
   Vform = "half"
+elseif fine
+  QX = Xsvd[:U][:, 1 : rankX];  #99 4 #orthonormal basis of Q0 of C(X)
+  Phieig = eigfact(Kadj);
+
+  if typeof(Phieig[:values][1]) == Complex{Float64}
+    Phieigval = reinterpret(Float64, Phieig[:values][1:2:end])
+  else
+    Phieigval = reinterpret(Float64, Phieig[:values][1:end])
+  end
+
+  Phieigvec = zeros(size(Phieig[:vectors]))
+  if typeof(Phieig[:vectors][1,1]) == Complex{Float64}
+    for p in 1:size(Phieigvec,1)
+        Phieigvec[p,:] = reinterpret(Float64, Phieig[:vectors][p,:][1:2:end])
+    end
+  else
+    for p in 1:size(Phieigvec,1)
+        Phieigvec[p,:] = reinterpret(Float64, Phieig[:vectors][p,:][1:end])
+    end
+  end
+
+  rankPhi = countnz(Phieigval .> max(0.0, nPerKeep * eps(maximum(Phieigval))));
+  idxEvecPhi = vec(Phieigvec[1, :]) .< 0;
+  scale!(Phieigvec[:, idxEvecPhi], -1.0);
+  rankPhi = min(rankPhi, ifloor(rankPhi * lowRank));
+  # low rank approximation
+  sortIdx = sortperm(Phieigval, rev = true);
+  evalPhi = Phieigval[sortIdx[1 : rankPhi]];
+  evecPhi = Phieigvec[:, sortIdx[1 : rankPhi]];
+  QPhisvd = svdfact(BLAS.gemm('T', 'N', XtNullBasis, evecPhi));
+  PhiKeepIdx = (1 - QPhisvd[:S]) .< 1e-6;
+  rankQPhi = countnz(PhiKeepIdx);
+  #QPhi = evecPhi * QPhisvd[:V][:, 1 : rankQPhi];
+  QPhi = Array(Float64, nPerKeep, rankQPhi);
+  BLAS.gemm!('N', 'N', 1.0, evecPhi, QPhisvd[:V][:, 1 : rankQPhi], 0.0, QPhi);
+  XPhitNullBasis = null([QX evecPhi]');
+  tmpMat = Array(Float64, rankQPhi, rankPhi);
+
+  BLAS.gemm!('T', 'N', 1.0, QPhi, evecPhi, 0.0, tmpMat);
+  scale!(tmpMat, sqrt(evalPhi));
+  PhiAdjsvd = svdfact(tmpMat, thin = false);
+  evalPhiAdj = PhiAdjsvd[:S] .^ 2;
+  idxW = vec(PhiAdjsvd[:U][1, :]) .< 0;
+  scale!(PhiAdjsvd[:U][:, idxW], -1.0);
+  KPhiAdj = PhiAdjsvd[:U][:, :];
+  scale!(KPhiAdj, sqrt(evalPhiAdj / minimum(evalPhiAdj) - 1));
+  InvSqrtevalPhiAdj = similar(evalPhiAdj);
+  for i = 1 : length(evalPhiAdj)
+    InvSqrtevalPhiAdj[i] = 1 / sqrt(evalPhiAdj[i]);
+  end
+  weightedW = PhiAdjsvd[:U][:, :];
+  scale!(weightedW, InvSqrtevalPhiAdj);
+  yShift = QPhi' * y;
+
+  # prepare for simulating Chi Squares and sums of Chi Squares
+  nPreRank = length(evalPhiAdj)
+  tmpn = length(evalPhiAdj);
+  QRes = Array(Float64, nPerKeep, rankQPhi);
+
+  tmpvec = similar(yShift);
+  tmpvecQRes = Array(Float64, rankQPhi);
+  yWork = similar(evalPhiAdj);
+  partialSumWConst = Array(Float64, nNullSimPts);
+  totalSumWConst = Array(Float64, nNullSimPts);
+  subXPhitSV = Array(Float64, size(XPhitNullBasis, 2), rankQPhi);
+  pSubXPhitSV = pointer(subXPhitSV);
+
+  tmpMat = Array(Float64, nPerKeep, size(XPhitNullBasis, 2));
+  VWorkSqrt = Array(Float64, length(evalPhiAdj), nPerKeep);
+  VWorkSqrt2 = Array(Float64, length(evalPhiAdj), nPerKeep);
+
+     # obtain some orthonormal vectors of space R^n - [QX,QPHI,S]
+     # See Golub and Van Loan (1996) Algorithm 12.4.2 on p602
+  BLAS.gemm!('T', 'N', 1.0, K, XPhitNullBasis, 0.0, tmpMat);
+  (UXPhitS, svalXPhitS, VXPhitS) = svd(tmpMat, thin = false);
+
+  pXPhitSV = pointer(VXPhitS)
+  BLAS.blascopy!(size(XPhitNullBasis, 2) * rankQPhi, pXPhitSV, 1, pSubXPhitSV, 1);
+  BLAS.gemm!('N', 'N', 1.0, XPhitNullBasis, subXPhitSV, 0.0, QRes); # QRes---Q2
+  BLAS.blascopy!(length(yShift), yShift, 1, tmpvec, 1); # tmpvec---Q1'*y
+  BLAS.gemv!('T', 1.0, QRes, y, 0.0, tmpvecQRes);  # tmpvecQRes---Q2'*y
+  BLAS.gemv!('N', 1.0, KPhiAdj, tmpvecQRes, 1.0, tmpvec); #tmpvec---Q1'*y+K*Q2'*Y
+  BLAS.gemv!('T', 1.0, weightedW, tmpvec, 0.0, yWork);
+
+  BLAS.gemm!('T', 'N', 1.0, QPhi, K, 0.0, VWorkSqrt2);  #VWorkSqrt2=Q1'*Kernel
+  BLAS.gemm!('T', 'N', 1.0, weightedW, VWorkSqrt2, 0.0, VWorkSqrt);
+  Vform="half"
 end
 
 if pvalueComputing == "chi2"

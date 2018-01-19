@@ -43,6 +43,16 @@ julia> using VCmicrobiome
 julia> microvctest(kernelFile = "kernel_baseline.csv", covFile = "covariates_baseline.csv", responseFile = "y_baseline.csv", longtitudinal = false, test = "eRLRT", yIdx = 3)
 ```
 
+# Option `fine`
+This option is specified for localizing fine microbiome cluster effects. If you want to adjust for effect contributed by related cluster, then
+
+```julia
+julia> using VCmicrobiome
+julia> microvctest(kernelFile = "kernel.csv", kadjFile = "kernel_adj.csv", fine = true ,covFile = "covariates.csv", responseFile = "y.csv", test = "eScore", yIdx = 3)
+```
+
+If the rank of V1 has high or full rank, the package will evoke the low rank approximation with default `lowRank = 0.4`. For example, if `fine = true`, the _microvctest_ will perform low rank approximation since microbiome kernel matrix usually has full rank. 
+
 # Option `pvalueComputing`
 Chi squared approximation is recommended (though you don't have to write it out specifically)
 ```julia

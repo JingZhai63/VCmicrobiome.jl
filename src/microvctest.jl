@@ -44,7 +44,7 @@ elseif fine & !isempty(kadjFile)
   Kadj = readdlm(kadjFile,',')
   if typeof(Kadj[1,1]) != Float64
     Kadj = Kadj[2:end,:]
-    K = convert(Array{Float64, 2}, Kadj)
+    Kadj = convert(Array{Float64, 2}, Kadj)
   else
     Kadj = convert(Array{Float64, 2}, Kadj)
   end
@@ -198,19 +198,19 @@ elseif fine
   rankPhi = countnz(Phieigval .> max(0.0, nPerKeep * eps(maximum(Phieigval))));
   idxEvecPhi = vec(Phieigvec[1, :]) .< 0;
   scale!(Phieigvec[:, idxEvecPhi], -1.0);
-  rankPhi = min(rankPhi, ifloor(rankPhi * lowRank));
+  rankPhi = min(rankPhi, floor(rankPhi * lowRank));
   # low rank approximation
   sortIdx = sortperm(Phieigval, rev = true);
-  evalPhi = Phieigval[sortIdx[1 : rankPhi]];
-  evecPhi = Phieigvec[:, sortIdx[1 : rankPhi]];
+  evalPhi = Phieigval[sortIdx[1 : Int(rankPhi)]];
+  evecPhi = Phieigvec[:, sortIdx[1 : Int(rankPhi)]];
   QPhisvd = svdfact(BLAS.gemm('T', 'N', XtNullBasis, evecPhi));
   PhiKeepIdx = (1 - QPhisvd[:S]) .< 1e-6;
   rankQPhi = countnz(PhiKeepIdx);
   #QPhi = evecPhi * QPhisvd[:V][:, 1 : rankQPhi];
   QPhi = Array(Float64, nPerKeep, rankQPhi);
   BLAS.gemm!('N', 'N', 1.0, evecPhi, QPhisvd[:V][:, 1 : rankQPhi], 0.0, QPhi);
-  XPhitNullBasis = null([QX evecPhi]');
-  tmpMat = Array(Float64, rankQPhi, rankPhi);
+  XPhitNullBasis = nullspace([QX evecPhi]');
+  tmpMat = Array(Float64, rankQPhi, Int(rankPhi));
 
   BLAS.gemm!('T', 'N', 1.0, QPhi, evecPhi, 0.0, tmpMat);
   scale!(tmpMat, sqrt(evalPhi));
@@ -229,8 +229,8 @@ elseif fine
   yShift = QPhi' * y;
 
   # prepare for simulating Chi Squares and sums of Chi Squares
-  nPreRank = length(evalPhiAdj)
   tmpn = length(evalPhiAdj);
+  nPreRank = length(evalPhiAdj)-1
   QRes = Array(Float64, nPerKeep, rankQPhi);
 
   tmpvec = similar(yShift);

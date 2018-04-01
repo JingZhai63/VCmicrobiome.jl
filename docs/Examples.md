@@ -48,7 +48,7 @@ This option is specified for localizing fine microbiome cluster effects. If you 
 
 ```julia
 julia> using VCmicrobiome
-julia> microvctest(kernelFile = "kernel.csv", kadjFile = "kernel_adj.csv", fine = true ,covFile = "covariates.csv", responseFile = "y.csv", test = "eScore", yIdx = 3)
+julia> microvctest(kernelFile = "kernel.csv", kadjFile = "Akernel.csv", fine = true ,covFile = "covariates.csv", responseFile = "y.csv", test = "eScore", yIdx = 3)
 ```
 
 If the rank of V1 has high or full rank, the package will evoke the low rank approximation with default `lowRank = 0.4`. For example, if `fine = true`, the _microvctest_ will perform low rank approximation since microbiome kernel matrix usually has full rank. 

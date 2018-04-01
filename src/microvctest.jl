@@ -50,7 +50,6 @@ elseif fine & !isempty(kadjFile)
   end
 end
 
-
 #VCmicrobiome::------------------ get covariate and response-------------------#
 if isempty(covFile)
   X = ones(nObs, 1) # N-by-1 matrix with all elements equal to 1

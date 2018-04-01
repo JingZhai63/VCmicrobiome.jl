@@ -378,9 +378,10 @@ elseif longitudinal || fine
 end
 
 if out == true
-  outresults = vcat(vc0List, vc1List, pvalList)
-  outrlst = hcat(yname, outresults')
-  outrlst = vcat(["phenotye", "vc0", "vc1", "pvalue"]',outrlst)
+#  outresults = vcat(vc0List, vc1List, pvalList)
+  outrlst = hcat(yname, vcat(vc0List, vc1List, pvalList)')
+  cname = hcat("phenotye", "vc0", "vc1", "pvalue")
+  outrlst = [cname; outrlst]
   writedlm(outFile, outrlst)
 end
 

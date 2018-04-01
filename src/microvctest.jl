@@ -40,7 +40,7 @@ nObs = length(K[:, 1])
 ##VCmicrobiome::-----------------------get kernel adj -------------------------#
 if fine & isempty(kadjFile)
   error("mVctest:kernelwrongn\n", "# no kernel adjustment matrix")
-elseif fine & isempty(kadjFile) == false
+elseif fine & !isempty(kadjFile)
   Kadj = readdlm(kadjFile,',')
   if typeof(Kadj[1,1]) != Float64
     Kadj = Kadj[2:end,:]

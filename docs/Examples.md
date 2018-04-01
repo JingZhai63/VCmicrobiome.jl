@@ -40,7 +40,7 @@ $ julia -E 'using VCmicrobiome; microvctest(kernelFile = "kernel.csv", covFile =
 If the study is not longitudinal designed or you want to analyze data for one time point, then
 ```julia
 julia> using VCmicrobiome
-julia> microvctest(kernelFile = "kernel_baseline.csv", covFile = "covariates_baseline.csv", responseFile = "y_baseline.csv", longtitudinal = false, test = "eRLRT", yIdx = 3)
+julia> microvctest(kernelFile = "kernel_baseline.csv", covFile = "covariates_baseline.csv", responseFile = "y_baseline.csv", longitudinal = false, test = "eRLRT", yIdx = 3)
 ```
 
 # Option `fine`

@@ -92,6 +92,13 @@ if longitudinal && isempty(zFile)
   end
   ZZ = Z * Z'
 end
+  
+if isempty(zFile) == FALSE
+    Z = readdlm(zFile,',')
+    Z = Z[2:end, :]
+    Z = convert(Array{Float64, 2}, Z)
+    ZZ = Z * Z'
+end
 
 offset = 0
 

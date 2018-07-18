@@ -89,7 +89,7 @@ function vctest(y, X, V; bInit::Array{Float64, 1} = Float64[],
   # eigendecomposition of V
   if Vform == "whole"
     (evalV, UV) = eig(V);
-    rankV = countnz(evalV .> n * eps(sqrt(maximum(evalV))));
+    rankV = countnz(evalV .> n * eps(sqrt.(maximum(evalV))));
     sortIdx = sortperm(evalV, rev = true);
     evalV = evalV[sortIdx[1:rankV]];
     UV = UV[:, sortIdx[1:rankV]];
@@ -112,7 +112,7 @@ function vctest(y, X, V; bInit::Array{Float64, 1} = Float64[],
   elseif Vform == "eigen"
     UV = V.U;
     evalV = V.eval;
-    rankV = countnz(V.eval .> n * eps(sqrt(maximum(V.eval))));
+    rankV = countnz(V.eval .> n * eps(sqrt.(maximum(V.eval))));
     sortIdx = sortperm(V.eval, rev = true);
     V.eval = V.eval[sortIdx[1:rankV]];
     V.U = V.U[:, sortIdx[1:rankV]];
@@ -128,7 +128,7 @@ function vctest(y, X, V; bInit::Array{Float64, 1} = Float64[],
     psqrtV = pointer(sqrtV);
     pUV = pointer(UV);
     BLAS.blascopy!(n*rankV, pUV, 1, psqrtV, 1);
-    scale!(sqrtV, sqrt(evalV));
+    scale!(sqrtV, sqrt.(evalV));
   end
   if isempty(X)
     evalAdjV = evalV;
@@ -157,7 +157,7 @@ function vctest(y, X, V; bInit::Array{Float64, 1} = Float64[],
     vc0Null = norm(rNull) ^ 2 / n;
     Xrot = UVfull' * X;
     yrot = UVfull' * y;
-    loglConst = - 0.5 * n * log(2.0 * pi);
+    loglConst = - 0.5 * n * log.(2.0 * pi);
 
     # set starting point
     if isempty(bInit)
@@ -170,7 +170,7 @@ function vctest(y, X, V; bInit::Array{Float64, 1} = Float64[],
     if isempty(vcInit)
       vc0 = norm(r) ^ 2 / n;
       vc1 = 1;
-      wt = 1.0 ./ sqrt(vc1 * evalVfull + vc0);
+      wt = 1.0 ./ sqrt.(vc1 * evalVfull + vc0);
     else
       vc0 = vcInit[1];
       # avoid sticky boundary
@@ -181,7 +181,7 @@ function vctest(y, X, V; bInit::Array{Float64, 1} = Float64[],
       if vc1 == 0
         vc1 = 1e-4;
       end
-      wt = 1.0 ./ sqrt(vc1 * evalVfull + vc0);
+      wt = 1.0 ./ sqrt.(vc1 * evalVfull + vc0);
       Xnew = scale(wt, Xrot);
       ynew = wt .* yrot;
       b = Xnew \ ynew;
@@ -210,8 +210,8 @@ function vctest(y, X, V; bInit::Array{Float64, 1} = Float64[],
         numvec = rnew .* denvec;
         #vc0 = sqrt( (vc0 ^ 2 * sumabs2(numvec) + deltaRes) /
         #            (sumabs(denvec) + (n - rankV) / vc0) );
-        vc0 = vc0 * sqrt(sumabs2(numvec) / sumabs(denvec));
-        vc1 = vc1 * sqrt( dot(numvec, numvec .* evalVfull) /
+        vc0 = vc0 * sqrt.(sumabs2(numvec) / sumabs(denvec));
+        vc1 = vc1 * sqrt.( dot(numvec, numvec .* evalVfull) /
                            sumabs(evalVfull .* denvec) );
         #wt = 1.0 ./ sqrt(vc1 * evalVfull + vc0);
       end
@@ -219,7 +219,7 @@ function vctest(y, X, V; bInit::Array{Float64, 1} = Float64[],
       # update fixed effects and residuals
       #pb = pointer(b);
       #BLAS.blascopy!(length(b), pb, 1, pbOld, 1);
-      wt = sqrt(denvec);
+      wt = sqrt.(denvec);
       Xnew = scale(wt, Xrot);
       ynew = wt .* yrot;
       b = Xnew \ ynew;
@@ -240,7 +240,7 @@ function vctest(y, X, V; bInit::Array{Float64, 1} = Float64[],
     # log-likelihood at alternative
     logLikeAlt = logl;
     # log-likelihood at null
-    logLikeNull = loglConst - 0.5 * n * log(vc0Null) -
+    logLikeNull = loglConst - 0.5 * n * log.(vc0Null) -
       0.5 * sum(rNull .^ 2) / vc0Null;
     if logLikeNull >= logLikeAlt
       vc0 = vc0Null;
@@ -340,12 +340,11 @@ function vctest(y, X, V; bInit::Array{Float64, 1} = Float64[],
       denvec = 1 ./ tmpvec;
       numvec = (resnew .* denvec) .^ 2;
       vcOld = [vc0 vc1];
-      vc0 = sqrt( (vc0 ^ 2 * sum(numvec) + deltaRes) /
+      vc0 = sqrt.( (vc0 ^ 2 * sum(numvec) + deltaRes) /
                    (sum(denvec) + (n - rankX - rankBVB) / vc0) );
       #vc0 = sqrt( (vc0 ^ 2 * numvecSum + deltaRes) /
       #             (denvecSum + (n - rankX - rankBVB) / vc0) );
-      vc1 = vc1 * sqrt( sum(evalBVB .* numvec) / sum(evalBVB .* denvec) );
-      #vc1 = vc1 * sqrt( numvecProdSum / denvecProdSum );
+      vc1 = vc1 * sqrt.( numvecProdSum / denvecProdSum );
       # stopping criterion
       if norm([vc0 vc1] - vcOld) <= tolX * (norm(vcOld) + 1)
         break;
@@ -354,12 +353,12 @@ function vctest(y, X, V; bInit::Array{Float64, 1} = Float64[],
 
     # restrictive log-likelihood at alternative
 
-    loglConst = - 0.5 * (n - rankX) * log(2 * pi);
-    logLikeAlt =  loglConst - 0.5 * sum(log(tmpvec)) -
-      0.5 * (n - rankX - rankBVB) * log(vc0) - 0.5 * normYtilde2 / vc0 +
+    loglConst = - 0.5 * (n - rankX) * log.(2 * pi);
+    logLikeAlt =  loglConst - 0.5 * sum(log.(tmpvec)) -
+      0.5 * (n - rankX - rankBVB) * log.(vc0) - 0.5 * normYtilde2 / vc0 +
       0.5 * sum(resnew .^ 2 .* (1 / vc0 - 1 ./ (tmpvec)));
     # restrictive log-likelihood at null
-    logLikeNull = - 0.5 * (n - rankX) * (log(2 * pi) + log(vc0Null)) -
+    logLikeNull = - 0.5 * (n - rankX) * (log.(2 * pi) + log.(vc0Null)) -
       0.5 / vc0Null * normYtilde2;
     if logLikeNull >= logLikeAlt
       vc0 = vc0Null;
@@ -399,7 +398,7 @@ function vctest(y, X, V; bInit::Array{Float64, 1} = Float64[],
     else
       Xrot = UV' * X;
       yrot = UV' * y;
-      wt = 1.0 ./ sqrt(vc1 * evalV + vc0);
+      wt = 1.0 ./ sqrt.(vc1 * evalV + vc0);
       Xnew = scale(wt, Xrot);
       ynew = wt .* yrot;
       b = Xnew \ ynew;

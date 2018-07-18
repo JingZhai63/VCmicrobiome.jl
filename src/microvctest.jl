@@ -142,7 +142,7 @@ elseif longitudinal && fine == false
   PhiAdjsvd[:U][:, idxW] = - PhiAdjsvd[:U][:, idxW]
 
   KPhiAdj = PhiAdjsvd[:U][:, :]
-  scale!(KPhiAdj, sqrt(evalPhiAdj / minimum(evalPhiAdj) - 1))
+  scale!(KPhiAdj, sqrt.(evalPhiAdj / minimum(evalPhiAdj) - 1))
   InvSqrtevalPhiAdj = similar(evalPhiAdj)
   for i = 1 : length(evalPhiAdj)
     InvSqrtevalPhiAdj[i] = 1 / sqrt(evalPhiAdj[i])

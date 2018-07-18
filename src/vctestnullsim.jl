@@ -281,10 +281,10 @@ function vctestnullsim(teststat, evalV, evalAdjV, n, rankX, WPreSim;
             tmpsum1 += tmpmat1[i, j];
           end
           for i = 1 : rankV
-            tmpprod += log(tmpmat6[i, j] + 1);
+            tmpprod += log.(tmpmat6[i, j] + 1);
           end
-          simnull[j] = ne * log(totalSumW[j]) -
-            ne * log(tmpsum1 + partialSumW[j]) - tmpprod;
+          simnull[j] = ne * log.(totalSumW[j]) -
+            ne * log.(tmpsum1 + partialSumW[j]) - tmpprod;
         end
       else
         simnull = Array(Float64, counter);
@@ -293,12 +293,12 @@ function vctestnullsim(teststat, evalV, evalAdjV, n, rankX, WPreSim;
           tmpprod = 0.0;
           for i = 1 : rankAdjV
             tmpmat0[i, j] = evalAdjV[i] * lambda[j] + 1;
-            tmpprod += log(tmpmat0[i, j]);
+            tmpprod += log.(tmpmat0[i, j]);
             tmpmat1[i, j] = W[i, j] / tmpmat0[i, j];
             tmpsum1 += tmpmat1[i, j];
           end
-          simnull[j] = ne * log(totalSumW[j]) -
-            ne * log(tmpsum1 + partialSumW[j]) - tmpprod;
+          simnull[j] = ne * log.(totalSumW[j]) -
+            ne * log.(tmpsum1 + partialSumW[j]) - tmpprod;
         end
       end
       if pvalueComputing == "MonteCarlo"

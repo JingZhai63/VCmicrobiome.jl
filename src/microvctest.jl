@@ -92,7 +92,7 @@ if longitudinal && isempty(zFile)
   end
   ZZ = Z * Z'
 end
-  
+
 if isempty(zFile) == false
     Z = readdlm(zFile,',')
     Z = Z[2:end, :]
@@ -214,10 +214,10 @@ elseif fine
   PhiKeepIdx = (1 - QPhisvd[:S]) .< 1e-6;
   rankQPhi = countnz(PhiKeepIdx);
   #QPhi = evecPhi * QPhisvd[:V][:, 1 : rankQPhi];
-  QPhi = Array(Float64, nPerKeep, rankQPhi);
+  QPhi = Array{Float64}(nPerKeep, rankQPhi);
   BLAS.gemm!('N', 'N', 1.0, evecPhi, QPhisvd[:V][:, 1 : rankQPhi], 0.0, QPhi);
   XPhitNullBasis = nullspace([QX evecPhi]');
-  tmpMat = Array(Float64, rankQPhi, Int(rankPhi));
+  tmpMat = Array{Float64}(rankQPhi, Int(rankPhi));
 
   BLAS.gemm!('T', 'N', 1.0, QPhi, evecPhi, 0.0, tmpMat);
   scale!(tmpMat, sqrt(evalPhi));
@@ -238,19 +238,19 @@ elseif fine
   # prepare for simulating Chi Squares and sums of Chi Squares
   tmpn = length(evalPhiAdj);
   nPreRank = length(evalPhiAdj)-1
-  QRes = Array(Float64, nPerKeep, rankQPhi);
+  QRes = Array{Float64}(nPerKeep, rankQPhi);
 
   tmpvec = similar(yShift);
-  tmpvecQRes = Array(Float64, rankQPhi);
+  tmpvecQRes = Array{Float64}(rankQPhi);
   yWork = similar(evalPhiAdj);
-  partialSumWConst = Array(Float64, nNullSimPts);
-  totalSumWConst = Array(Float64, nNullSimPts);
-  subXPhitSV = Array(Float64, size(XPhitNullBasis, 2), rankQPhi);
+  partialSumWConst = Array{Float64}(nNullSimPts);
+  totalSumWConst = Array{Float64}(nNullSimPts);
+  subXPhitSV = Array{Float64}(size(XPhitNullBasis, 2), rankQPhi);
   pSubXPhitSV = pointer(subXPhitSV);
 
-  tmpMat = Array(Float64, nPerKeep, size(XPhitNullBasis, 2));
-  VWorkSqrt = Array(Float64, length(evalPhiAdj), nPerKeep);
-  VWorkSqrt2 = Array(Float64, length(evalPhiAdj), nPerKeep);
+  tmpMat = Array{Float64}(nPerKeep, size(XPhitNullBasis, 2));
+  VWorkSqrt = Array{Float64}(length(evalPhiAdj), nPerKeep);
+  VWorkSqrt2 = Array{Float64}(length(evalPhiAdj), nPerKeep);
 
      # obtain some orthonormal vectors of space R^n - [QX,QPHI,S]
      # See Golub and Van Loan (1996) Algorithm 12.4.2 on p602

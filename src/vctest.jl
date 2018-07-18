@@ -344,7 +344,8 @@ function vctest(y, X, V; bInit::Array{Float64, 1} = Float64[],
                    (sum(denvec) + (n - rankX - rankBVB) / vc0) );
       #vc0 = sqrt( (vc0 ^ 2 * numvecSum + deltaRes) /
       #             (denvecSum + (n - rankX - rankBVB) / vc0) );
-      vc1 = vc1 * sqrt.( numvecProdSum / denvecProdSum );
+      vc1 = vc1 * sqrt.( sum(evalBVB .* numvec) / sum(evalBVB .* denvec) );
+      #vc1 = vc1 * sqrt( numvecProdSum / denvecProdSum );
       # stopping criterion
       if norm([vc0 vc1] - vcOld) <= tolX * (norm(vcOld) + 1)
         break;
